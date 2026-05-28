@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GOAT Score | NBA Ranking Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="motion-court" aria-hidden="true"></canvas>
+
+    <header class="hero">
+      <nav class="topbar" aria-label="Main navigation">
+        <a class="brand" href="#">
+          <span class="brand-mark">G</span>
+          <span>GOAT Score Lab</span>
+        </a>
+        <div class="nav-actions">
+          <a href="#rankings">Top 100</a>
+          <a href="#search">Search</a>
+          <a href="#method">Formula</a>
+        </div>
+      </nav>
+
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">NBA all-time ranking engine</p>
+          <h1>Rank legends by impact, peak, playoffs, gravity, and staying power.</h1>
+          <p class="hero-text">
+            Every player is scored from 0-10 in seven categories, then ranked by the weighted
+            GOAT_SCORE model. Search any player in the database to see their exact slot, neighbors,
+            profile strengths, and what the model leaves out.
+          </p>
+          <div class="hero-tools" id="search">
+            <label class="search-box" for="player-search">
+              <span>Search player</span>
+              <input id="player-search" type="search" placeholder="Try Michael Jordan, Stephen Curry, Nikola Jokic..." autocomplete="off" />
+            </label>
+            <button id="random-player" type="button">Random profile</button>
+          </div>
+        </div>
+
+        <aside class="score-orbit" aria-label="GOAT score formula visualization">
+          <div class="court-card">
+            <div class="court-lines">
+              <div class="rim"></div>
+              <div class="paint"></div>
+              <div class="arc"></div>
+            </div>
+            <div class="formula-chip longevity">22% Longevity</div>
+            <div class="formula-chip peak">20% Peak</div>
+            <div class="formula-chip playoffs">16% Playoffs</div>
+            <div class="formula-chip versatility">14% Versatility</div>
+            <div class="formula-chip gravity">10% Gravity</div>
+            <div class="formula-chip twoway">10% Two-way</div>
+            <div class="formula-chip accolades">8% Accolades</div>
+            <div class="score-core">
+              <span>GOAT</span>
+              <strong>Score</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </header>
+
+    <main>
+      <section class="section-shell profile-section" aria-live="polite">
+        <div id="profile-empty" class="profile-empty">
+          <span class="pulse-dot"></span>
+          Search a player to open the full rank breakdown.
+        </div>
+        <div id="profile-panel" class="profile-panel hidden"></div>
+      </section>
+
+      <section class="section-shell stat-strip" aria-label="Model summary">
+        <article>
+          <span id="database-size">0</span>
+          <p>players scored</p>
+        </article>
+        <article>
+          <span>7</span>
+          <p>weighted categories</p>
+        </article>
+        <article>
+          <span>0-10</span>
+          <p>category scale</p>
+        </article>
+        <article>
+          <span id="top-score">0.00</span>
+          <p>highest GOAT_SCORE</p>
+        </article>
+      </section>
+
+      <section class="section-shell rankings-section" id="rankings">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Computed leaderboard</p>
+            <h2 id="rankings-title">Top 100 NBA GOAT rankings</h2>
+          </div>
+          <div class="table-controls">
+            <div class="limit-buttons" aria-label="Leaderboard size">
+              <button type="button" class="limit-button active" data-limit="100">Top 100</button>
+              <button type="button" class="limit-button" data-limit="110">Top 110</button>
+              <button type="button" class="limit-button" data-limit="150">Top 150</button>
+            </div>
+            <form id="custom-limit-form" class="custom-limit" aria-label="Custom leaderboard size">
+              <label for="custom-limit">Top</label>
+              <input id="custom-limit" type="number" min="1" max="450" placeholder="250" />
+              <button type="submit">Show</button>
+            </form>
+            <select id="era-filter" aria-label="Filter by peak era">
+              <option value="all">All peak eras</option>
+              <option value="1950s">1950s</option>
+              <option value="1960s">1960s</option>
+              <option value="1970s">1970s</option>
+              <option value="1980s">1980s</option>
+              <option value="1990s">1990s</option>
+              <option value="2000s">2000s</option>
+              <option value="2010s">2010s</option>
+              <option value="2020s">2020s</option>
+            </select>
+            <select id="sort-select" aria-label="Sort rankings">
+              <option value="rank">Overall rank</option>
+              <option value="score">GOAT_SCORE</option>
+              <option value="L">Longevity</option>
+              <option value="P">Peak</option>
+              <option value="PO">Playoffs</option>
+              <option value="V">Versatility</option>
+              <option value="G">Gravity</option>
+              <option value="W">Two-way impact</option>
+              <option value="A">Accolades</option>
+            </select>
+          </div>
+        </div>
+        <p id="rankings-note" class="rankings-note"></p>
+
+        <div class="rank-table-wrap">
+          <table class="rank-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>GOAT</th>
+                <th>L</th>
+                <th>P</th>
+                <th>PO</th>
+                <th>V</th>
+                <th>G</th>
+                <th>W</th>
+                <th>A</th>
+              </tr>
+            </thead>
+            <tbody id="rankings-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section-shell method-section" id="method">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Transparent model</p>
+            <h2>Formula and category keys</h2>
+          </div>
+        </div>
+        <div class="method-grid">
+          <article class="formula-card">
+            <h3>GOAT_SCORE</h3>
+            <p>
+              0.22L + 0.20P + 0.16PO + 0.14V + 0.10G + 0.10W + 0.08A
+            </p>
+            <small>
+              Scores are model estimates, not an official NBA or Basketball Reference ranking.
+              The site is built so category numbers can be audited and adjusted.
+            </small>
+          </article>
+          <div id="category-cards" class="category-cards"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
